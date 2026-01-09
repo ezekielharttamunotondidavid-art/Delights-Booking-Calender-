@@ -72,6 +72,7 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      text-align: center;
     }
     th, td {
       border: 1px solid #ccc;
@@ -82,6 +83,10 @@
       background: #1976d2;
       color: white;
     }
+    .classBooking { background-color: #90caf9; color: #000; }
+    .prayerBooking { background-color: #a5d6a7; color: #000; }
+    .coachingBooking { background-color: #ce93d8; color: #000; }
+    .otherBooking { background-color: #e0e0e0; color: #000; }
     footer {
       text-align: center;
       margin-top: 30px;
@@ -108,7 +113,10 @@
   <option>14:00 – 15:00</option>
   <option>16:00 – 17:00</option>
   <option>18:00 – 19:00</option>
+  <option value="custom">Custom</option>
 </select>
+
+<input type="text" id="customTime" placeholder="Enter custom time e.g. 10:00 - 12:00" style="display:none; margin-top:10px;" />
 
 <button type="submit">Confirm Booking</button>
 
@@ -132,18 +140,45 @@
   const daysContainer = document.getElementById('days');
   const form = document.getElementById('bookingForm');
   const adminBody = document.querySelector('#adminTable tbody');
+  const timeSelect = document.getElementById('time');
+  const customTimeInput = document.getElementById('customTime');
+  const purposeInput = document.getElementById('purpose');
   let selectedDay = null;
 
   const bookings = JSON.parse(localStorage.getItem('delightBookings')) || {};
+
+  // Show/hide custom time input
+  timeSelect.addEventListener('change', () => {
+    if(timeSelect.value === 'custom') {
+      customTimeInput.style.display = 'block';
+      customTimeInput.required = true;
+    } else {
+      customTimeInput.style.display = 'none';
+      customTimeInput.required = false;
+    }
+  });
+
+  // Format custom time
+  function formatCustomTime(input) {
+    let parts = input.split('-');
+    if(parts.length !== 2) return input;
+    let start = parts[0].trim();
+    let end = parts[1].trim();
+    function addAMPM(timeStr) {
+      if(/am|pm/i.test(timeStr)) return timeStr;
+      let [hour] = timeStr.split(':');
+      hour = parseInt(hour);
+      return (hour >= 1 && hour <= 7) ? `${timeStr} PM` : `${timeStr} AM`;
+    }
+    return `${addAMPM(start)} - ${addAMPM(end)}`;
+  }
 
   // Display days
   for (let i = 1; i <= 30; i++) {
     const day = document.createElement('div');
     day.classList.add('day');
     day.textContent = i;
-
     if (bookings[i]) day.classList.add('booked');
-
     day.addEventListener('click', () => {
       if (day.classList.contains('booked')) return;
       document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
@@ -151,7 +186,6 @@
       selectedDay = i;
       form.style.display = 'block';
     });
-
     daysContainer.appendChild(day);
   }
 
@@ -159,23 +193,30 @@
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('name').value;
-    const purpose = document.getElementById('purpose').value;
-    const time = document.getElementById('time').value;
+    const purpose = purposeInput.value.trim();
+    let time = timeSelect.value === 'custom' ? customTimeInput.value : timeSelect.value;
+
+    if(timeSelect.value === 'custom') time = formatCustomTime(time);
 
     bookings[selectedDay] = { name, purpose, time };
     localStorage.setItem('delightBookings', JSON.stringify(bookings));
-
     alert(`Booking confirmed on day ${selectedDay} at ${time}`);
     location.reload();
   });
 
-  // Load admin table
+  // Load admin table with color coding
   for (let day in bookings) {
     const tr = document.createElement('tr');
+    let bookingClass = 'otherBooking';
+    const purpose = bookings[day].purpose.toLowerCase();
+    if(purpose.includes('class')) bookingClass = 'classBooking';
+    else if(purpose.includes('prayer')) bookingClass = 'prayerBooking';
+    else if(purpose.includes('coaching')) bookingClass = 'coachingBooking';
+
     tr.innerHTML = `
       <td>${day}</td>
       <td>${bookings[day].name}</td>
-      <td>${bookings[day].purpose}</td>
+      <td class="${bookingClass}">${bookings[day].purpose}</td>
       <td>${bookings[day].time}</td>
     `;
     adminBody.appendChild(tr);
