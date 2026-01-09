@@ -10,17 +10,11 @@
       margin: 0;
       padding: 20px;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
       color: #0d47a1;
     }
-    p {
-      text-align: center;
-      color: #333;
-      max-width: 600px;
-      margin: auto;
-    }
-    .calendar {
+    .calendar, .admin {
       max-width: 700px;
       margin: 30px auto;
       background: #ffffff;
@@ -74,6 +68,20 @@
       cursor: pointer;
       font-size: 16px;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #1976d2;
+      color: white;
+    }
     footer {
       text-align: center;
       margin-top: 30px;
@@ -83,9 +91,9 @@
   </style>
 </head>
 <body><h1>Delight's Booking Calendar</h1>
-<p>Use this calendar to book dates and times for classes, church, prayer, services, coaching, personal studies, or rest time.</p><div class="calendar">
+<p style="text-align:center; max-width:600px; margin:auto; color:#333;">Use this calendar to book dates and times for classes, church, prayer, services, coaching, personal studies, or rest time.</p><div class="calendar">
   <div class="days" id="days"></div>  <form id="bookingForm">
-    <h3>Complete Your Booking</h3><label>Your Name</label>
+    <h2>Complete Your Booking</h2><label>Your Name</label>
 <input type="text" id="name" required />
 
 <label>Purpose</label>
@@ -105,27 +113,39 @@
 <button type="submit">Confirm Booking</button>
 
   </form>
+</div><div class="admin">
+  <h2>Admin Dashboard</h2>
+  <table id="adminTable">
+    <thead>
+      <tr>
+        <th>Day</th>
+        <th>Name</th>
+        <th>Purpose</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div><footer>
   © 2026 Delight's Personal Booking Calendar
 </footer><script>
   const daysContainer = document.getElementById('days');
   const form = document.getElementById('bookingForm');
+  const adminBody = document.querySelector('#adminTable tbody');
   let selectedDay = null;
 
   const bookings = JSON.parse(localStorage.getItem('delightBookings')) || {};
 
+  // Display days
   for (let i = 1; i <= 30; i++) {
     const day = document.createElement('div');
     day.classList.add('day');
     day.textContent = i;
 
-    if (bookings[i]) {
-      day.classList.add('booked');
-    }
+    if (bookings[i]) day.classList.add('booked');
 
     day.addEventListener('click', () => {
       if (day.classList.contains('booked')) return;
-
       document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
       day.classList.add('selected');
       selectedDay = i;
@@ -135,9 +155,9 @@
     daysContainer.appendChild(day);
   }
 
+  // Handle booking submission
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-
     const name = document.getElementById('name').value;
     const purpose = document.getElementById('purpose').value;
     const time = document.getElementById('time').value;
@@ -148,5 +168,17 @@
     alert(`Booking confirmed on day ${selectedDay} at ${time}`);
     location.reload();
   });
+
+  // Load admin table
+  for (let day in bookings) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${day}</td>
+      <td>${bookings[day].name}</td>
+      <td>${bookings[day].purpose}</td>
+      <td>${bookings[day].time}</td>
+    `;
+    adminBody.appendChild(tr);
+  }
 </script></body>
 </html>
