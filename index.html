@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delight's Booking Calendar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #0d47a1;
+    }
+    p {
+      text-align: center;
+      color: #333;
+      max-width: 600px;
+      margin: auto;
+    }
+    .calendar {
+      max-width: 700px;
+      margin: 30px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+      padding: 20px;
+    }
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .day {
+      padding: 15px;
+      background: #e3f2fd;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+    .day.booked {
+      background: #90caf9;
+      color: #ffffff;
+      cursor: not-allowed;
+    }
+    .day.selected {
+      background: #1976d2;
+      color: #ffffff;
+    }
+    form {
+      margin-top: 25px;
+      display: none;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+    }
+    button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #555;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body><h1>Delight's Booking Calendar</h1>
+<p>Use this calendar to book dates and times for classes, church, prayer, services, coaching, personal studies, or rest time.</p><div class="calendar">
+  <div class="days" id="days"></div>  <form id="bookingForm">
+    <h3>Complete Your Booking</h3><label>Your Name</label>
+<input type="text" id="name" required />
+
+<label>Purpose</label>
+<input type="text" id="purpose" placeholder="e.g. Prayer, Coaching, Study" required />
+
+<label>Select Time</label>
+<select id="time" required>
+  <option value="">Choose time</option>
+  <option>08:00 – 09:00</option>
+  <option>10:00 – 11:00</option>
+  <option>12:00 – 13:00</option>
+  <option>14:00 – 15:00</option>
+  <option>16:00 – 17:00</option>
+  <option>18:00 – 19:00</option>
+</select>
+
+<button type="submit">Confirm Booking</button>
+
+  </form>
+</div><footer>
+  © 2026 Delight's Personal Booking Calendar
+</footer><script>
+  const daysContainer = document.getElementById('days');
+  const form = document.getElementById('bookingForm');
+  let selectedDay = null;
+
+  const bookings = JSON.parse(localStorage.getItem('delightBookings')) || {};
+
+  for (let i = 1; i <= 30; i++) {
+    const day = document.createElement('div');
+    day.classList.add('day');
+    day.textContent = i;
+
+    if (bookings[i]) {
+      day.classList.add('booked');
+    }
+
+    day.addEventListener('click', () => {
+      if (day.classList.contains('booked')) return;
+
+      document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
+      day.classList.add('selected');
+      selectedDay = i;
+      form.style.display = 'block';
+    });
+
+    daysContainer.appendChild(day);
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value;
+    const purpose = document.getElementById('purpose').value;
+    const time = document.getElementById('time').value;
+
+    bookings[selectedDay] = { name, purpose, time };
+    localStorage.setItem('delightBookings', JSON.stringify(bookings));
+
+    alert(`Booking confirmed on day ${selectedDay} at ${time}`);
+    location.reload();
+  });
+</script></body>
+</html>
